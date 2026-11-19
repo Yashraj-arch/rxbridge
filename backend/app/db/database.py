@@ -9,7 +9,11 @@ if "tidbcloud.com" in db_url.lower() and "/sys" in db_url:
 
 connect_args = {}
 if "tidbcloud.com" in db_url.lower() or "ssl" in db_url.lower():
-    connect_args["ssl"] = {"ca": certifi.where()}
+    ca_path = certifi.where()
+    connect_args["ssl_ca"] = ca_path
+    connect_args["ssl_verify_cert"] = True
+    connect_args["ssl_verify_identity"] = True
+    connect_args["ssl"] = {"ca": ca_path}
 
 engine = create_engine(
     db_url,

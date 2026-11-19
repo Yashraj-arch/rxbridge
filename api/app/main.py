@@ -9,7 +9,8 @@ for _p in [_api_dir, _current, _root_dir, "/var/task/api", "/var/task"]:
         sys.path.insert(0, _p)
 
 from contextlib import asynccontextmanager
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
@@ -126,6 +127,21 @@ app = FastAPI(
     version="1.0.0",
     lifespan=lifespan
 )
+
+import traceback
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    tb = traceback.format_exc()
+    print(f"[Unhandled Exception] {exc}\n{tb}")
+    return JSONResponse(
+        status_code=500,
+        content={
+            "error": "Unhandled Server Exception",
+            "message": str(exc),
+            "traceback": tb.splitlines()[-10:] if tb else []
+        }
+    )
 
 # Security Middlewares
 app.add_middleware(SecurityHeadersMiddleware)
