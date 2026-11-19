@@ -67,6 +67,11 @@ function normMobile(raw) {
   return digits.length >= 10 ? digits.slice(-10) : digits;
 }
 
+function isValidMobile(raw) {
+  const m = normMobile(raw);
+  return /^[6-9]\d{9}$/.test(m);
+}
+
 function patientInitials(name) {
   if (!name) return '—';
   return name.trim().split(/\s+/).map(p => p[0].toUpperCase() + '.').join(' ');
@@ -348,8 +353,8 @@ window.uploadLabReport = async function() {
   const statusEl = document.getElementById('labUploadStatus');
   const mobile = normMobile(mobileInput?.value);
 
-  if (!mobile || mobile.length < 10) {
-    alert('Please enter a valid 10-digit patient mobile number first.');
+  if (!mobile || !isValidMobile(mobile)) {
+    alert('Please enter a valid 10-digit Indian patient mobile number (starting with 6, 7, 8, or 9) first.');
     return;
   }
   if (!fileInput?.files?.[0]) {
@@ -633,13 +638,32 @@ window.savePrescription = async function() {
   const consentOffers = !!document.getElementById('consentOffers')?.checked;
   const consentRefill = !!document.getElementById('consentRefill')?.checked;
 
-  if (!name) { alert('Patient name is required.'); return; }
-  if (!age) { alert('Patient age / gender is required.'); return; }
-  if (!mobile || mobile.length < 10) { alert('A valid 10-digit mobile number is required.'); return; }
+  if (!name || name.length < 2) { alert('Patient name must be at least 2 characters long.'); return; }
+  if (!age || age.length < 2) { alert('Patient age / gender is required (e.g. 35/M or 28/F).'); return; }
+  if (!mobile || !isValidMobile(mobile)) {
+    alert('A valid 10-digit Indian mobile number (starting with 6, 7, 8, or 9) is required.');
+    return;
+  }
 
-  // Vitals validation Plausibility checks (BRD FR-2.4)
+  // Vitals Plausibility Checks (BRD FR-2.4)
+  if (weight && (weight < 1 || weight > 350)) {
+    alert('Weight must be between 1 kg and 350 kg.');
+    return;
+  }
+  if (bpSys && (bpSys < 60 || bpSys > 260)) {
+    alert('Systolic blood pressure must be between 60 and 260 mmHg.');
+    return;
+  }
+  if (bpDia && (bpDia < 40 || bpDia > 160)) {
+    alert('Diastolic blood pressure must be between 40 and 160 mmHg.');
+    return;
+  }
   if (bpSys && bpDia && bpSys <= bpDia) {
-    alert('Systolic BP must be greater than Diastolic BP.');
+    alert('Systolic BP must be strictly greater than Diastolic BP.');
+    return;
+  }
+  if (pulse && (pulse < 30 || pulse > 220)) {
+    alert('Pulse rate must be between 30 and 220 bpm.');
     return;
   }
   if (temp && (temp < 90 || temp > 110)) {
@@ -896,8 +920,8 @@ window.loadPatientProfile = async function() {
   const container = document.getElementById('patientProfileContainer');
   const mobile = normMobile(input?.value);
 
-  if (!mobile || mobile.length < 10) {
-    alert('Please enter a 10-digit mobile number.');
+  if (!mobile || !isValidMobile(mobile)) {
+    alert('Please enter a valid 10-digit Indian mobile number (starting with 6, 7, 8, or 9).');
     return;
   }
 
