@@ -1,13 +1,37 @@
 import os
 import sys
 
-# Ensure backend directory is in python search path
 current_dir = os.path.dirname(os.path.abspath(__file__))
-backend_dir = os.path.abspath(os.path.join(current_dir, "..", "backend"))
-if backend_dir not in sys.path:
-    sys.path.insert(0, backend_dir)
+root_dir = os.path.abspath(os.path.join(current_dir, ".."))
+backend_dir = os.path.join(root_dir, "backend")
 
-from app.main import app
+for p in [backend_dir, root_dir, current_dir]:
+    if p not in sys.path:
+        sys.path.insert(0, p)
 
-# Vercel serverless entrypoint
+try:
+    from app.main import app
+except Exception as e:
+    import traceback
+    err_tb = traceback.format_exc()
+    from fastapi import FastAPI
+    from fastapi.responses import JSONResponse
+
+    app = FastAPI(title="RxBridge Diagnostics")
+
+    @app.api_route("/{path:path}", methods=["GET", "POST", "PUT", "DELETE"])
+    def error_handler(path: str):
+        return JSONResponse(
+            status_code=500,
+            content={
+                "error": "FastAPI Initialization Failed",
+                "message": str(e),
+                "traceback": err_tb,
+                "current_dir": current_dir,
+                "root_exists": os.path.exists(root_dir),
+                "root_files": os.listdir(root_dir) if os.path.exists(root_dir) else [],
+            }
+        )
+
+# Vercel ASGI entrypoint
 handler = app

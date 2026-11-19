@@ -92,11 +92,23 @@ def seed_initial_data():
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Ensure tables exist
-    Base.metadata.create_all(bind=engine)
+    try:
+        Base.metadata.create_all(bind=engine)
+    except Exception as e:
+        print(f"[Lifespan Warning] Table creation skipped: {e}")
+
     # Ensure uploads directory exists
-    os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
+    try:
+        os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
+    except Exception:
+        pass
+
     # Seed initial data
-    seed_initial_data()
+    try:
+        seed_initial_data()
+    except Exception as e:
+        print(f"[Lifespan Warning] Seed skipped: {e}")
+
     yield
 
 app = FastAPI(
@@ -119,9 +131,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Mount static uploads
-os.makedirs("uploads/lab_reports", exist_ok=True)
-app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
+# Mount static uploads safely
+try:
+    upload_path = "/tmp/uploads" if os.name != "nt" and not os.access(".", os.W_OK) else "uploads"
+    os.makedirs(os.path.join(upload_path, "lab_reports"), exist_ok=True)
+    app.mount("/uploads", StaticFiles(directory=upload_path), name="uploads")
+except Exception as e:
+    print(f"[Mount Warning] Could not mount uploads: {e}")
 
 # Mount frontend static app
 frontend_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "frontend"))

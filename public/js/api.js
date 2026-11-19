@@ -1,8 +1,8 @@
 // RxBridge API Client
 
-const API_BASE = window.location.origin.includes(':8000') 
-  ? window.location.origin + '/api/v1' 
-  : 'http://localhost:8000/api/v1';
+const API_BASE = (window.location.hostname === 'localhost' && window.location.port !== '8000')
+  ? 'http://localhost:8000/api/v1'
+  : '/api/v1';
 
 const TOKEN_KEY = 'rxbridge_token';
 const USER_KEY = 'rxbridge_user';

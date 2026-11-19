@@ -6,8 +6,26 @@ from typing import List, Dict, Any, Optional
 from datetime import datetime, timezone
 from app.core.config import settings
 
-KNOWLEDGE_FILE = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", "agent_memory", "system_knowledge.md"))
-SESSION_LOG_FILE = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", "agent_memory", "session_logs.json"))
+def get_knowledge_file() -> str:
+    possible_paths = [
+        os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", "agent_memory", "system_knowledge.md")),
+        os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "agent_memory", "system_knowledge.md")),
+        os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "agent_memory", "system_knowledge.md")),
+        os.path.abspath("agent_memory/system_knowledge.md"),
+    ]
+    for p in possible_paths:
+        if os.path.exists(p):
+            return p
+    return possible_paths[0]
+
+def get_session_log_file() -> str:
+    # If in serverless (read-only filesystem), use /tmp
+    if os.name != "nt" and not os.access(".", os.W_OK):
+        return "/tmp/session_logs.json"
+    return os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", "agent_memory", "session_logs.json"))
+
+KNOWLEDGE_FILE = get_knowledge_file()
+SESSION_LOG_FILE = get_session_log_file()
 
 def load_system_knowledge() -> str:
     if os.path.exists(KNOWLEDGE_FILE):

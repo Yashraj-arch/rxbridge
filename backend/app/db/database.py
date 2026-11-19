@@ -3,12 +3,16 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from app.core.config import settings
 
+db_url = settings.DATABASE_URL
+if "tidbcloud.com" in db_url.lower() and "/sys" in db_url:
+    db_url = db_url.replace("/sys", "/rxbridge_db")
+
 connect_args = {}
-if "tidbcloud.com" in settings.DATABASE_URL.lower() or "ssl" in settings.DATABASE_URL.lower():
+if "tidbcloud.com" in db_url.lower() or "ssl" in db_url.lower():
     connect_args["ssl"] = {"ca": certifi.where()}
 
 engine = create_engine(
-    settings.DATABASE_URL,
+    db_url,
     echo=False,
     pool_pre_ping=True,
     pool_size=settings.DB_POOL_SIZE,

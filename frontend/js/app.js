@@ -217,12 +217,17 @@ window.doLogin = async function() {
     applyRoleUI(currentRole);
     window.showScreen('dashScreen');
   } catch (e) {
-    failedLoginAttempts++;
-    if (failedLoginAttempts >= 3) {
-      lockoutEndTime = Date.now() + 15 * 60 * 1000;
-      err.textContent = 'Too many failed attempts. Account locked for 15 minutes.';
+    const isAuthErr = e.status === 401 || (e.message && e.message.toLowerCase().includes('credential')) || (e.message && e.message.toLowerCase().includes('incorrect'));
+    if (isAuthErr) {
+      failedLoginAttempts++;
+      if (failedLoginAttempts >= 3) {
+        lockoutEndTime = Date.now() + 15 * 60 * 1000;
+        err.textContent = 'Too many failed attempts. Account locked for 15 minutes.';
+      } else {
+        err.textContent = e.message || 'Login failed. Please check credentials.';
+      }
     } else {
-      err.textContent = e.message || 'Login failed. Please check credentials.';
+      err.textContent = e.message || 'Connection error. Please try again.';
     }
     err.style.display = 'block';
   } finally {
