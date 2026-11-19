@@ -11,5 +11,6 @@ __pycache__/
 .vscode/
 .idea/
 backend/uploads/
+uploads/
 venv/
 .venv/
