@@ -1,4 +1,13 @@
 import os
+import sys
+
+_current = os.path.dirname(os.path.abspath(__file__))
+_api_dir = os.path.dirname(_current)
+_root_dir = os.path.dirname(_api_dir)
+for _p in [_api_dir, _current, _root_dir]:
+    if _p not in sys.path:
+        sys.path.insert(0, _p)
+
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -170,3 +179,5 @@ def root():
 @app.get("/health")
 def health():
     return {"status": "healthy"}
+
+handler = app

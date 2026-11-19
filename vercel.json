@@ -3,19 +3,19 @@
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "/api/index"
+      "destination": "/api/app/main"
     },
     {
       "source": "/uploads/(.*)",
-      "destination": "/api/index"
+      "destination": "/api/app/main"
     },
     {
       "source": "/docs",
-      "destination": "/api/index"
+      "destination": "/api/app/main"
     },
     {
       "source": "/openapi.json",
-      "destination": "/api/index"
+      "destination": "/api/app/main"
     }
   ]
 }
