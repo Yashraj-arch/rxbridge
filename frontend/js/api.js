@@ -50,20 +50,20 @@ export async function fetchWithAuth(endpoint, options = {}) {
     headers,
   });
 
-  if (res.status === 401) {
+  if (res.status === 401 && !endpoint.includes('/auth/login')) {
     clearToken();
     clearStoredUser();
-    window.location.reload();
     throw new Error('Session expired. Please log in again.');
   }
 
   if (!res.ok) {
     let errMessage = 'Request failed';
+    const text = await res.text();
     try {
-      const errData = await res.json();
-      errMessage = errData.detail || errData.message || JSON.stringify(errData);
+      const errData = JSON.parse(text);
+      errMessage = errData.detail || errData.message || (typeof errData === 'string' ? errData : JSON.stringify(errData));
     } catch {
-      errMessage = await res.text() || res.statusText;
+      errMessage = text || res.statusText || 'Request failed';
     }
     throw new Error(errMessage);
   }
