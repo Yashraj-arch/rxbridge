@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Verify Prescription – RxBridge</title>
+<style>
+  body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:#f1f5f9;color:#0f172a;}
+  .wrap{max-width:440px;margin:0 auto;padding:24px 16px;}
+  h1{font-size:18px;margin:0 0 16px;text-align:center;color:#334155;}
+  .card{background:#fff;border-radius:16px;padding:22px 20px;box-shadow:0 2px 12px rgba(0,0,0,.08);}
+  .badge{font-size:20px;font-weight:700;margin-bottom:14px;}
+  .ok{color:#15803d;} .bad{color:#b91c1c;} .wait{color:#475569;}
+  .row{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-top:1px solid #e2e8f0;font-size:14px;}
+  .row span:first-child{color:#64748b;} .row span:last-child{text-align:right;font-weight:600;}
+  .note{font-size:12px;color:#64748b;margin-top:14px;line-height:1.5;}
+  .back-btn{display:inline-block;margin-top:16px;font-size:13px;color:#0d9488;text-decoration:none;font-weight:600;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>℞ RxBridge · Prescription Verification</h1>
+  <div class="card" id="card"><div class="badge wait">Checking authenticity…</div></div>
+</div>
+
+<script>
+  const API_BASE = window.location.origin.includes(':8000') 
+    ? window.location.origin + '/api/v1' 
+    : 'http://localhost:8000/api/v1';
+
+  const card = document.getElementById('card');
+
+  function show(ok, title, rows, note) {
+    card.innerHTML = '';
+    const b = document.createElement('div');
+    b.className = 'badge ' + (ok ? 'ok' : 'bad');
+    b.textContent = title;
+    card.appendChild(b);
+    (rows || []).forEach(([k, v]) => {
+      const r = document.createElement('div'); r.className = 'row';
+      const a = document.createElement('span'); a.textContent = k;
+      const c = document.createElement('span'); c.textContent = v;
+      r.appendChild(a); r.appendChild(c); card.appendChild(r);
+    });
+    if (note) { 
+      const n = document.createElement('div'); 
+      n.className = 'note'; 
+      n.textContent = note; 
+      card.appendChild(n); 
+    }
+  }
+
+  (async () => {
+    const id = new URLSearchParams(location.search).get('id');
+    if (!id) {
+      show(false, '❌ Missing Prescription ID', [], 'No prescription ID was provided in the URL or QR code.');
+      return;
+    }
+    try {
+      const res = await fetch(`${API_BASE}/verify/${encodeURIComponent(id)}`);
+      if (!res.ok) {
+        show(false, '❌ Not Verified', [], 'This prescription could not be verified in the RxBridge system.');
+        return;
+      }
+      const d = await res.json();
+      if (!d.valid) {
+        show(false, '❌ Invalid Prescription', [], d.message || 'Prescription not found or not finalized.');
+        return;
+      }
+      show(true, '✅ Verified Prescription', [
+        ['Rx Number', d.rxNumber || '—'],
+        ['Doctor', (d.doctorName || '—') + (d.qualification ? ' (' + d.qualification + ')' : '')],
+        ['Reg. No.', d.regNo || '—'],
+        ['Clinic', d.clinicName || '—'],
+        ['Date Issued', d.date || '—'],
+        ['Patient', d.patientName || '—'],
+        ['Medicines Count', String(d.medicinesCount ?? '—')],
+        ['Status', (d.status || 'completed').toUpperCase()]
+      ], 'Verified official record from RxBridge. Ensure the printed copy matches the details displayed above.');
+    } catch (e) {
+      console.error(e);
+      show(false, '⚠️ Connection Error', [], 'Unable to connect to the RxBridge verification server. Please verify the backend is running.');
+    }
+  })();
+</script>
+</body>
+</html>

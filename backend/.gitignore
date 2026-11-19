@@ -1,0 +1,22 @@
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+venv/
+.venv/
+env/
+
+# Uploads and temporary files
+uploads/*
+!uploads/.gitkeep
+*.log
+
+# Pytest / Cache
+.pytest_cache/
