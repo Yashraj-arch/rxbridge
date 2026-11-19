@@ -1,5 +1,6 @@
 from logging.config import fileConfig
 import sys
+import certifi
 from os.path import abspath, dirname
 
 from sqlalchemy import create_engine, pool
@@ -33,7 +34,7 @@ def run_migrations_offline() -> None:
 def run_migrations_online() -> None:
     connect_args = {}
     if "tidbcloud.com" in settings.DATABASE_URL.lower() or "ssl" in settings.DATABASE_URL.lower():
-        connect_args["ssl"] = {"ssl_mode": "VERIFY_IDENTITY"}
+        connect_args["ssl"] = {"ca": certifi.where()}
 
     connectable = create_engine(
         settings.DATABASE_URL,

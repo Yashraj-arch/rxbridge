@@ -1,10 +1,11 @@
+import certifi
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from app.core.config import settings
 
 connect_args = {}
 if "tidbcloud.com" in settings.DATABASE_URL.lower() or "ssl" in settings.DATABASE_URL.lower():
-    connect_args["ssl"] = {"ssl_mode": "VERIFY_IDENTITY"}
+    connect_args["ssl"] = {"ca": certifi.where()}
 
 engine = create_engine(
     settings.DATABASE_URL,
