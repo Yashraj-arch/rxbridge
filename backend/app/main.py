@@ -2,10 +2,10 @@ import os
 import sys
 
 _current = os.path.dirname(os.path.abspath(__file__))
-_parent = os.path.dirname(_current)
-_root_dir = os.path.dirname(_parent)
-for _p in [_parent, _current, _root_dir]:
-    if _p not in sys.path:
+_api_dir = os.path.dirname(_current)
+_root_dir = os.path.dirname(_api_dir)
+for _p in [_api_dir, _current, _root_dir, "/var/task/api", "/var/task"]:
+    if _p and _p not in sys.path:
         sys.path.insert(0, _p)
 
 from contextlib import asynccontextmanager
@@ -177,5 +177,9 @@ def root():
     }
 
 @app.get("/health")
+@app.get("/api/health")
+@app.get("/api/v1/health")
 def health():
     return {"status": "healthy"}
+
+handler = app
