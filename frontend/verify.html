@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Verify Prescription – RxBridge</title>
+<title>Verify Prescription – Pharma Bridge</title>
 <style>
   body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:#f1f5f9;color:#0f172a;}
   .wrap{max-width:440px;margin:0 auto;padding:24px 16px;}
@@ -19,7 +19,7 @@
 </head>
 <body>
 <div class="wrap">
-  <h1>℞ RxBridge · Prescription Verification</h1>
+  <h1>℞ Pharma Bridge · Prescription Verification</h1>
   <div class="card" id="card"><div class="badge wait">Checking authenticity…</div></div>
 </div>
 
@@ -59,7 +59,7 @@
     try {
       const res = await fetch(`${API_BASE}/verify/${encodeURIComponent(id)}`);
       if (!res.ok) {
-        show(false, '❌ Not Verified', [], 'This prescription could not be verified in the RxBridge system.');
+        show(false, '❌ Not Verified', [], 'This prescription could not be verified in the Pharma Bridge system.');
         return;
       }
       const d = await res.json();
@@ -76,7 +76,7 @@
         ['Patient', d.patientName || '—'],
         ['Medicines Count', String(d.medicinesCount ?? '—')],
         ['Status', (d.status || 'completed').toUpperCase()]
-      ], 'Verified official record from RxBridge. Ensure the printed copy matches the details displayed above.');
+      ], 'Verified official record from Pharma Bridge. Ensure the printed copy matches the details displayed above.');
       if (d.pdfUrl) {
         const pdfBtn = document.createElement('a');
         pdfBtn.href = d.pdfUrl;
@@ -88,7 +88,7 @@
       }
     } catch (e) {
       console.error(e);
-      show(false, '⚠️ Connection Error', [], 'Unable to connect to the RxBridge verification server. Please verify the backend is running.');
+      show(false, '⚠️ Connection Error', [], 'Unable to connect to the Pharma Bridge verification server. Please verify the backend is running.');
     }
   })();
 </script>

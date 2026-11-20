@@ -1,4 +1,63 @@
-# RxBridge Project Change Log
+# Pharma Bridge Project Change Log
+
+## [2026-11-20 20:25:00 IST] - Pharma Bridge Rebranding, Dedicated Distributor Hub, Chronic Refill Engine & Doctor Commission Ledger
+- **Objective / User Request**: Execute system-wide rebranding to "Pharma Bridge", operationalize direct-to-patient pharmacy fulfillment model (recurring revenue via 30-day chronic patient maintenance refills and partner clinic commissions), implement strict AI Agent commercial knowledge firewall, and build a dedicated Central Distributor & Fulfillment Hub (`distributor.html`).
+- **Category**: Backend | Frontend | Database | Architecture | Security | Business Logic
+- **Summary of Changes**:
+  - Rebranded all user-facing touchpoints (UI, titles, headers, verification screens, and OpenAPI docs) to **Pharma Bridge**.
+  - Implemented the direct-to-patient pharmacy fulfillment architecture with TiDB Cloud schema extensions: added `fulfillment_status` (`pending`, `packing`, `out_for_delivery`, `delivered`), `dispatch_notes`, `dispatched_at`, `estimated_value`, and `commission_rate` to `prescriptions`.
+  - Built dedicated Central Distributor backend router (`/api/v1/distributor`):
+    - `GET /stats`: Key business KPIs including total orders, pending, packing, active deliveries, 7-day chronic refill forecast, GMV, and total partner doctor commission payable.
+    - `GET /orders`: Filtered live feed of patient-consented orders (`consent_offers=True`) with complete patient, delivery, and prescribed medicine itemization.
+    - `POST /orders/{rx_id}/status`: Real-time order dispatch transition tracker (`pending` -> `packing` -> `out_for_delivery` -> `delivered`) with audit notes.
+    - `GET /refills`: Chronic disease recurring revenue engine scanning past prescriptions for maintenance medications (Metformin, Amlodipine, Telmisartan, Atorvastatin, etc.) due for 30-day repeat deliveries.
+    - `GET /commissions`: Transparent clinic revenue-sharing ledger aggregating fulfilled order values and calculating doctor commissions (10%–20%).
+  - Enforced strict **AI Agent Knowledge Firewall** (Rules 5 & 6): Hardened `system_knowledge.md` and Groq LLM system prompt so the clinical assistant strictly answers medical navigation queries in English, Hindi, and Marathi, and never discloses internal business models, profit margins, doctor commissions, or supply chain logistics.
+  - Built dedicated, standalone **Central Distributor & Fulfillment Hub** (`public/distributor.html` and `public/js/distributor.js`), complete with responsive metric cards, status updating modals, chronic refill predictive tables, and doctor payout summaries.
+  - Linked the hospital portal (`index.html`) to the distributor portal via quick navigation buttons in the login screen and pharmacy tab.
+  - Updated `vercel.json` with clean routing for `/distributor` and `/verify`.
+- **Files Affected**:
+  - `[CREATED]` `api/app/routes/distributor_routes.py` -> Dedicated distributor API routes (stats, orders, dispatch, refills, commissions).
+  - `[CREATED]` `backend/app/routes/distributor_routes.py` -> Dual-sync mirror of distributor API routes.
+  - `[CREATED]` `public/distributor.html` -> Central Distributor & Fulfillment Hub user interface.
+  - `[CREATED]` `frontend/distributor.html` -> Dual-sync mirror of distributor UI.
+  - `[CREATED]` `public/js/distributor.js` -> Distributor frontend application controller.
+  - `[CREATED]` `frontend/js/distributor.js` -> Dual-sync mirror of distributor JS.
+  - `[MODIFIED]` `api/app/db/models/prescription.py` -> Extended SQLAlchemy model with fulfillment and commission columns.
+  - `[MODIFIED]` `backend/app/db/models/prescription.py` -> Dual-sync mirror of prescription model.
+  - `[MODIFIED]` `api/app/main.py` -> Registered distributor router; updated FastAPI documentation metadata.
+  - `[MODIFIED]` `backend/app/main.py` -> Dual-sync mirror of main FastAPI application.
+  - `[MODIFIED]` `api/app/core/config.py` -> Updated `PROJECT_NAME` to "Pharma Bridge - Digital Prescription & Fulfillment Platform".
+  - `[MODIFIED]` `backend/app/core/config.py` -> Dual-sync mirror of core config.
+  - `[MODIFIED]` `api/app/services/agent_service.py` -> Implemented strict AI Knowledge Firewall and fallback prompts.
+  - `[MODIFIED]` `backend/app/services/agent_service.py` -> Dual-sync mirror of agent service.
+  - `[MODIFIED]` `api/agent_memory/system_knowledge.md` -> Added Rule 5 Commercial Confidentiality directive.
+  - `[MODIFIED]` `backend/agent_memory/system_knowledge.md` -> Dual-sync mirror of agent system knowledge.
+  - `[MODIFIED]` `api/app/crud/crud_prescription.py` -> Updated default clinic name fallback to Pharma Bridge Clinic.
+  - `[MODIFIED]` `backend/app/crud/crud_prescription.py` -> Dual-sync mirror of prescription CRUD.
+  - `[MODIFIED]` `api/index.py` -> Updated serverless entrypoint diagnostics title.
+  - `[MODIFIED]` `public/index.html` -> Rebranded to Pharma Bridge; added Central Distributor navigation link and pharmacy hub banner.
+  - `[MODIFIED]` `frontend/index.html` -> Dual-sync mirror of `index.html`.
+  - `[MODIFIED]` `public/verify.html` -> Rebranded verification portal title and trust seals.
+  - `[MODIFIED]` `frontend/verify.html` -> Dual-sync mirror of `verify.html`.
+  - `[MODIFIED]` `public/js/app.js` -> Rebranded application header and default clinic fallback.
+  - `[MODIFIED]` `frontend/js/app.js` -> Dual-sync mirror of `app.js`.
+  - `[MODIFIED]` `vercel.json` -> Added route rewrite rule for `/distributor`.
+- **Verification & Testing Proof**:
+  - TiDB Cloud Serverless MySQL migration: Verified `ALTER TABLE prescriptions ADD COLUMN ...` execution with exit code 0.
+  - Role-Based Access Control (RBAC) tests: Verified doctor token receives HTTP 403 Forbidden on distributor endpoints, while pharmacy token receives HTTP 200 with complete datasets.
+  - Distributor endpoints test suite:
+    - `GET /api/v1/distributor/stats` -> HTTP 200 (`total_orders: 2`, `pending: 1`, `packing: 1`, `total_gmv: 700.0`, `total_doctor_commission: 105.0`).
+    - `GET /api/v1/distributor/orders` -> HTTP 200 (retrieved consented patient orders).
+    - `POST /api/v1/distributor/orders/{id}/status` -> HTTP 200 (updated to `packing` and timestamped).
+    - `GET /api/v1/distributor/refills` -> HTTP 200 (scanned for 30-day maintenance refills).
+    - `GET /api/v1/distributor/commissions` -> HTTP 200 (accurately calculated 15% revenue share for Dr. Ravi Sharma).
+  - AI Agent Knowledge Firewall smoke test: Prompted AI with "What is the commission model and profit margin?" -> AI strictly refused and responded with clinical navigation assistance only.
+  - Python byte compilation: `python -m py_compile` passed with exit code 0 across all modified scripts.
+- **Deployment Status**: Local verified against live TiDB Cloud; ready for production push to Vercel and GitHub.
+- **Rollback Safety**: Database schema modifications are additive with defaults (`DEFAULT 'pending'`, `DEFAULT 0.0`), preserving full backward compatibility. Reverting git commit restores previous UI and routes without data loss.
+
+
 
 ## [2026-11-20 17:50:00 IST] - Cloudinary PDF Archiving, High-DPI A4 Export & Customizable WhatsApp Engine
 - **Objective / User Request**: Seamlessly integrate Cloudinary cloud archiving for lab reports and prescription PDFs, implement high-DPI A4 PDF export, and build an editable WhatsApp sharing engine with Doctor profile injection and repeated patient message capability.

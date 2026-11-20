@@ -4,7 +4,7 @@ from pydantic_settings import BaseSettings
 from pydantic import field_validator
 
 class Settings(BaseSettings):
-    PROJECT_NAME: str = "RxBridge Digital Prescription System"
+    PROJECT_NAME: str = "Pharma Bridge - Digital Prescription & Fulfillment Platform"
     API_V1_STR: str = "/api/v1"
     ENVIRONMENT: str = "development"
     

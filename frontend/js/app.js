@@ -1,4 +1,4 @@
-// RxBridge Frontend Application Controller
+// Pharma Bridge Frontend Application Controller
 import {
   apiLogin,
   apiLogout,
@@ -1260,7 +1260,7 @@ window.closeShareModal = function() {
 window.updateShareTemplate = function() {
   if (!currentViewRx) return;
   const doc = currentViewRx.doctor_info || doctorSettings;
-  const clinicName = doc.clinicName || 'RxBridge Clinic';
+  const clinicName = doc.clinicName || 'Pharma Bridge Clinic';
   const rawDocName = doc.doctorName || 'Doctor';
   const doctorName = rawDocName.startsWith('Dr.') ? rawDocName : `Dr. ${rawDocName}`;
   const patientName = currentViewRx.patient_name || 'Patient';

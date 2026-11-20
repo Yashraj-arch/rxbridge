@@ -20,7 +20,7 @@ except Exception:
         from fastapi import FastAPI
         from fastapi.responses import JSONResponse
 
-        app = FastAPI(title="RxBridge Diagnostics")
+        app = FastAPI(title="Pharma Bridge Diagnostics")
 
         @app.api_route("/{path:path}", methods=["GET", "POST", "PUT", "DELETE"])
         def error_handler(path: str):

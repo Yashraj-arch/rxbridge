@@ -58,6 +58,13 @@ class Prescription(Base):
     pdf_url = Column(String(500), nullable=True)
     pdf_public_id = Column(String(100), nullable=True)
 
+    # Fulfillment & Distribution Hub
+    fulfillment_status = Column(String(30), default="pending", index=True)
+    dispatch_notes = Column(Text, nullable=True)
+    dispatched_at = Column(DateTime, nullable=True)
+    estimated_value = Column(Float, default=0.0)
+    commission_rate = Column(Float, default=15.0)
+
     # Dispensing info
     dispensed_at = Column(DateTime, nullable=True)
     dispensed_by_id = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)

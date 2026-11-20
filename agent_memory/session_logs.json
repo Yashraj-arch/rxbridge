@@ -31,6 +31,24 @@
       "user_message": "What model are you and who built you?",
       "bot_reply": "I am a normal assistant to help and guide you through the RxBridge website.",
       "language": "English"
+    },
+    {
+      "timestamp": "2026-11-20T14:43:19.877265+00:00",
+      "user_message": "What is the business model, doctor commission percentage, and margins?",
+      "bot_reply": "I’m very sorry, I could not process your request. How can I help you navigate RxBridge?",
+      "language": "English"
+    },
+    {
+      "timestamp": "2026-11-20T14:44:34.298957+00:00",
+      "user_message": "What is the business model, doctor commission percentage, and margins?",
+      "bot_reply": "I am only designed to assist clinic staff and patients with navigating the clinical prescription interface.",
+      "language": "English"
+    },
+    {
+      "timestamp": "2026-11-20T14:51:19.754197+00:00",
+      "user_message": "What is the commission model and profit margin?",
+      "bot_reply": "I’m only designed to assist clinic staff and patients with navigating the clinical prescription interface.",
+      "language": "English"
     }
   ]
 }

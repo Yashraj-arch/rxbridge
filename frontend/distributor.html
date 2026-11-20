@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pharma Bridge · Central Distributor & Fulfillment Hub</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    :root {
+      --navy-dark: #0f172a;
+      --navy-card: #1e293b;
+      --teal-primary: #0d9488;
+      --teal-hover: #0f766e;
+      --amber-alert: #f59e0b;
+      --blue-dispatch: #2563eb;
+      --purple-comm: #7c3aed;
+    }
+    body {
+      background: #f1f5f9;
+      color: #1e293b;
+      font-family: 'Inter', system-ui, sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+    .dist-topbar {
+      background: #1a2744;
+      color: #fff;
+      padding: 14px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    .dist-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 18px;
+      font-weight: 700;
+    }
+    .dist-badge {
+      background: #0d9488;
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 12px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+    .dist-nav-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .kpi-card {
+      background: #fff;
+      border-radius: 14px;
+      padding: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      border: 1px solid #e2e8f0;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .kpi-title {
+      font-size: 12px;
+      font-weight: 600;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .kpi-value {
+      font-size: 28px;
+      font-weight: 800;
+      color: #1e293b;
+      margin: 8px 0;
+    }
+    .kpi-desc {
+      font-size: 12px;
+      color: #0d9488;
+      font-weight: 600;
+    }
+    .dist-tabs {
+      display: flex;
+      gap: 8px;
+      border-bottom: 2px solid #e2e8f0;
+      margin-bottom: 20px;
+      overflow-x: auto;
+    }
+    .dist-tab {
+      padding: 12px 18px;
+      font-size: 14px;
+      font-weight: 600;
+      color: #64748b;
+      background: none;
+      border: none;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -2px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .dist-tab.active {
+      color: #0d9488;
+      border-bottom-color: #0d9488;
+    }
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+    .data-table th {
+      background: #f8fafc;
+      color: #475569;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      padding: 12px 16px;
+      text-align: left;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    .data-table td {
+      padding: 14px 16px;
+      font-size: 13px;
+      color: #334155;
+      border-bottom: 1px solid #f1f5f9;
+      vertical-align: middle;
+    }
+    .data-table tr:hover {
+      background: #f8fafc;
+    }
+    .status-pill {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    .status-pending { background: #fef3c7; color: #b45309; }
+    .status-packing { background: #e0f2fe; color: #0369a1; }
+    .status-out_for_delivery { background: #dbeafe; color: #1d4ed8; }
+    .status-delivered { background: #dcfce7; color: #15803d; }
+    .btn-action {
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s;
+    }
+    .btn-pack { background: #0d9488; color: #fff; }
+    .btn-pack:hover { background: #0f766e; }
+    .btn-dispatch { background: #2563eb; color: #fff; }
+    .btn-dispatch:hover { background: #1d4ed8; }
+    .btn-wa { background: #25D366; color: #fff; }
+    .btn-wa:hover { background: #1eb954; }
+  </style>
+</head>
+<body>
+
+  <!-- Distributor Topbar -->
+  <header class="dist-topbar">
+    <div class="dist-brand">
+      <span style="font-size:22px;color:#2dd4bf;">℞</span>
+      <div>
+        <span>Pharma Bridge</span>
+        <span style="font-size:12px;color:#94a3b8;font-weight:400;display:block;">Central Distributor & Fulfillment Hub</span>
+      </div>
+      <span class="dist-badge">Direct Fulfillment</span>
+    </div>
+    <div class="dist-nav-right">
+      <a href="index.html" class="btn-action" style="background:#334155;color:#fff;text-decoration:none;">🏥 Clinic / Hospital App</a>
+      <span id="distributorUserEmail" style="font-size:13px;color:#cbd5e1;font-weight:600;"></span>
+      <button onclick="distributorLogout()" class="btn-action" style="background:#ef4444;color:#fff;">Logout</button>
+    </div>
+  </header>
+
+  <!-- Login Modal for Distributor if unauthenticated -->
+  <div id="distLoginScreen" style="display:none;min-height:80vh;align-items:center;justify-content:center;padding:24px;">
+    <div style="background:#fff;border-radius:20px;padding:40px;max-width:420px;width:100%;box-shadow:0 12px 36px rgba(0,0,0,0.1);border:1px solid #e2e8f0;">
+      <div style="text-align:center;margin-bottom:24px;">
+        <div style="font-size:42px;color:#0d9488;margin-bottom:8px;">📦</div>
+        <h2 style="margin:0;font-size:22px;color:#1a2744;">Distributor Hub Login</h2>
+        <p style="margin:6px 0 0;font-size:13px;color:#64748b;">Sign in with your pharmacy / warehouse account</p>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:14px;">
+        <div>
+          <label style="display:block;font-size:12px;font-weight:600;margin-bottom:6px;color:#334155;">Email Address</label>
+          <input type="email" id="distLoginEmail" value="pharmacy@rxbridge.com" style="width:100%;padding:10px 12px;border:1px solid #cbd5e1;border-radius:8px;font-size:14px;box-sizing:border-box;">
+        </div>
+        <div>
+          <label style="display:block;font-size:12px;font-weight:600;margin-bottom:6px;color:#334155;">Password</label>
+          <input type="password" id="distLoginPass" value="pharmacy123" style="width:100%;padding:10px 12px;border:1px solid #cbd5e1;border-radius:8px;font-size:14px;box-sizing:border-box;">
+        </div>
+        <button onclick="doDistributorLogin()" style="width:100%;padding:12px;background:#0d9488;color:#fff;border:none;border-radius:8px;font-weight:700;font-size:14px;cursor:pointer;margin-top:8px;">Sign In to Warehouse Hub</button>
+        <div id="distLoginError" style="color:#ef4444;font-size:12px;text-align:center;display:none;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Distributor Dashboard Content -->
+  <main id="distMainContent" style="display:none;max-width:1240px;margin:24px auto;padding:0 20px;">
+    
+    <!-- KPI Row -->
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-title">Pending Orders</div>
+        <div class="kpi-value" id="kpiPending">0</div>
+        <div class="kpi-desc">Awaiting Packing & Dispatch</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-title">Out for Delivery</div>
+        <div class="kpi-value" id="kpiDispatched" style="color:#2563eb;">0</div>
+        <div class="kpi-desc">Courier In Transit</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-title">Chronic 30-Day Refills</div>
+        <div class="kpi-value" id="kpiRefills" style="color:#f59e0b;">0</div>
+        <div class="kpi-desc">Patients Due in Next 7 Days</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-title">Doctor Commission Pool</div>
+        <div class="kpi-value" id="kpiCommissions" style="color:#7c3aed;">₹0</div>
+        <div class="kpi-desc">Partner Clinic Payouts (15%)</div>
+      </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div class="dist-tabs">
+      <button class="dist-tab active" onclick="switchDistTab('orders')">📦 Consented Orders Queue</button>
+      <button class="dist-tab" onclick="switchDistTab('refills')">🔄 Chronic Refill Predictor</button>
+      <button class="dist-tab" onclick="switchDistTab('commissions')">💼 Doctor Commission Ledger</button>
+    </div>
+
+    <!-- TAB 1: Consented Orders Queue -->
+    <section id="tabOrders">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;gap:12px;flex-wrap:wrap;">
+        <div style="display:flex;gap:8px;">
+          <button class="btn-action" style="background:#e2e8f0;color:#334155;" onclick="filterOrdersByStatus('all')">All</button>
+          <button class="btn-action" style="background:#fef3c7;color:#b45309;" onclick="filterOrdersByStatus('pending')">Pending</button>
+          <button class="btn-action" style="background:#e0f2fe;color:#0369a1;" onclick="filterOrdersByStatus('packing')">Packing</button>
+          <button class="btn-action" style="background:#dbeafe;color:#1d4ed8;" onclick="filterOrdersByStatus('out_for_delivery')">Out for Delivery</button>
+          <button class="btn-action" style="background:#dcfce7;color:#15803d;" onclick="filterOrdersByStatus('delivered')">Delivered</button>
+        </div>
+        <input type="text" id="distOrderSearch" placeholder="Search patient, mobile, doctor, or Rx..." oninput="debouncedSearch()" style="padding:8px 14px;border:1px solid #cbd5e1;border-radius:8px;font-size:13px;width:280px;">
+      </div>
+
+      <div style="overflow-x:auto;">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Rx Number</th>
+              <th>Patient</th>
+              <th>Prescribing Doctor</th>
+              <th>Medicines Summary</th>
+              <th>Status</th>
+              <th>Est. Value</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="distOrdersTableBody">
+            <tr><td colspan="7" style="text-align:center;padding:24px;color:#94a3b8;">Loading orders...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- TAB 2: Chronic 30-Day Refill Predictor -->
+    <section id="tabRefills" style="display:none;">
+      <div style="background:#fff;border-radius:12px;padding:20px;border:1px solid #e2e8f0;margin-bottom:16px;">
+        <h3 style="margin:0 0 6px;color:#1a2744;">🔄 High-LTV Chronic Patient Refill Predictor</h3>
+        <p style="margin:0;font-size:13px;color:#64748b;">Patients with maintenance medications for chronic conditions (Diabetes, BP, Cardiac) approaching their 30-day supply exhaustion. Send proactive WhatsApp refill dispatch to lock in recurring monthly revenue.</p>
+      </div>
+
+      <div style="overflow-x:auto;">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Patient</th>
+              <th>Mobile</th>
+              <th>Doctor / Clinic</th>
+              <th>Prescribed Chronic Medicines</th>
+              <th>Refill Countdown</th>
+              <th>Urgency</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="distRefillsTableBody">
+            <tr><td colspan="7" style="text-align:center;padding:24px;color:#94a3b8;">Scanning chronic patient cycles...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- TAB 3: Doctor Commission Ledger -->
+    <section id="tabCommissions" style="display:none;">
+      <div style="background:#fff;border-radius:12px;padding:20px;border:1px solid #e2e8f0;margin-bottom:16px;">
+        <h3 style="margin:0 0 6px;color:#1a2744;">💼 Partner Clinic & Doctor Commission Payouts</h3>
+        <p style="margin:0;font-size:13px;color:#64748b;">Clinics partner with Pharma Bridge on a revenue-share model (10%–20% commission). Here is the accumulated dispensing volume and payout ledger per doctor.</p>
+      </div>
+
+      <div style="overflow-x:auto;">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Doctor Name</th>
+              <th>Clinic / Hospital</th>
+              <th>Doctor Email</th>
+              <th>Fulfillment Orders</th>
+              <th>Medicines Dispensed</th>
+              <th>Total Order GMV (₹)</th>
+              <th>Commission Rate</th>
+              <th>Commission Payable (₹)</th>
+            </tr>
+          </thead>
+          <tbody id="distCommissionsTableBody">
+            <tr><td colspan="8" style="text-align:center;padding:24px;color:#94a3b8;">Computing partner commissions...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Packing & Order Details Modal -->
+  <div id="orderDetailModal" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,0.6);z-index:9999;align-items:center;justify-content:center;padding:16px;">
+    <div style="background:#fff;border-radius:18px;max-width:620px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:0 20px 45px rgba(0,0,0,0.2);">
+      <div style="background:#1a2744;color:#fff;padding:16px 20px;display:flex;justify-content:space-between;align-items:center;">
+        <div style="font-size:16px;font-weight:700;" id="modalRxNumber">Order Details</div>
+        <button onclick="closeOrderDetailModal()" style="background:none;border:none;color:#94a3b8;font-size:22px;cursor:pointer;">✕</button>
+      </div>
+      <div style="padding:20px;" id="modalOrderContent"></div>
+    </div>
+  </div>
+
+  <script src="js/distributor.js"></script>
+</body>
+</html>

@@ -29,6 +29,7 @@ from app.routes.upload_routes import router as upload_router
 from app.routes.dashboard_routes import router as dashboard_router
 from app.routes.verify_routes import router as verify_router
 from app.routes.agent_routes import router as agent_router
+from app.routes.distributor_routes import router as distributor_router
 
 from app.db.models.user import User
 from app.db.models.medicine import CustomMedicine
@@ -123,7 +124,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
-    description="Backend API for RxBridge Digital Prescription System",
+    description="Backend API for Pharma Bridge Digital Prescription & Fulfillment System",
     version="1.0.0",
     lifespan=lifespan
 )
@@ -180,6 +181,7 @@ app.include_router(upload_router, prefix=api_v1)
 app.include_router(dashboard_router, prefix=api_v1)
 app.include_router(verify_router, prefix=api_v1)
 app.include_router(agent_router, prefix=api_v1)
+app.include_router(distributor_router, prefix=api_v1)
 
 @app.get("/")
 def root():

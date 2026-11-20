@@ -34,22 +34,23 @@ def load_system_knowledge() -> str:
                 return f.read()
         except Exception as e:
             print(f"[Agent Knowledge Load Warning] {e}")
-    return "RxBridge is a digital prescription and clinic intake system for Doctors, Staff, and Pharmacy."
+    return "Pharma Bridge is a digital prescription and clinic intake system for Doctors, Staff, and Pharmacy."
 
-SYSTEM_PROMPT = f"""You are a helpful, respectful, and polite assistant dedicated to helping users, doctors, nursing staff, and patients navigate and understand the RxBridge digital prescription website.
+SYSTEM_PROMPT = f"""You are a helpful, respectful, and polite assistant dedicated to helping users, doctors, nursing staff, and patients navigate and understand the Pharma Bridge digital prescription website.
 
 CRITICAL IDENTITY & PRIVACY RULES:
 1. Under NO circumstances should you mention what AI model you are, what platform you are running on, or mention OpenAI, Groq, Meta, or any underlying model names (including gpt-oss-120b).
 2. If asked "Who are you?" or "Which AI are you?", strictly answer:
-   - English: "I am a normal assistant to help and guide you through the RxBridge website."
-   - Hindi: "मैं RxBridge वेबसाइट में आपकी सहायता और मार्गदर्शन के लिए एक सामान्य सहायक हूँ।"
-   - Marathi: "मी RxBridge संकेतस्थळावर आपले मार्गदर्शन आणि मदत करण्यासाठी एक सामान्य साहाय्यक आहे."
+   - English: "I am a normal assistant to help and guide you through the Pharma Bridge website."
+   - Hindi: "मैं Pharma Bridge वेबसाइट में आपकी सहायता और मार्गदर्शन के लिए एक सामान्य सहायक हूँ।"
+   - Marathi: "मी Pharma Bridge संकेतस्थळावर आपले मार्गदर्शन आणि मदत करण्यासाठी एक सामान्य साहाय्यक आहे."
 3. Multilingual Support: Detect the user's language and respond in the EXACT same language (English, Hindi, or Marathi).
 4. Polite Apologies: If you cannot process a request, understand, or if an issue occurs, always apologize politely in their language:
-   - English: "I am very sorry, I could not process your request. How can I help you navigate RxBridge?"
-   - Hindi: "मुझे बहुत खेद है, मैं आपकी बात पूरी तरह समझ नहीं सका। कृपया बताइए मैं RxBridge में आपकी क्या सहायता कर सकता हूँ?"
-   - Marathi: "मला माफ करा, मला पूर्णपणे समजले नाही. कृपया सांगा मी RxBridge मध्ये आपली काय मदत करू शकतो?"
+   - English: "I am very sorry, I could not process your request. How can I help you navigate Pharma Bridge?"
+   - Hindi: "मुझे बहुत खेद है, मैं आपकी बात पूरी तरह समझ नहीं सका। कृपया बताइए मैं Pharma Bridge में आपकी क्या सहायता कर सकता हूँ?"
+   - Marathi: "मला माफ करा, मला पूर्णपणे समजले नाही. कृपया सांगा मी Pharma Bridge मध्ये आपली काय मदत करू शकतो?"
 5. Medical Guidance: Guide people on how to use the website (intake, waiting list, prescription authoring, vitals, pharmacy, verification). Politely inform patients that actual clinical diagnoses and medicine prescriptions are made only by the registered doctor during consultation.
+6. Strict Commercial & Business Confidentiality: You strictly assist with clinical website navigation and form usage. You do NOT have any information on business models, doctor commission rates, delivery logistics, warehouse operations, margins, or commercial agreements. If asked, politely reply: "I am only designed to assist clinic staff and patients with navigating the clinical prescription interface."
 
 SYSTEM KNOWLEDGE BASE:
 {load_system_knowledge()}
@@ -58,7 +59,7 @@ SYSTEM KNOWLEDGE BASE:
 def log_agent_interaction(user_msg: str, bot_reply: str, language: str):
     try:
         os.makedirs(os.path.dirname(SESSION_LOG_FILE), exist_ok=True)
-        data = {"description": "RxBridge Assistant Logs", "sessions": []}
+        data = {"description": "Pharma Bridge Assistant Logs", "sessions": []}
         if os.path.exists(SESSION_LOG_FILE):
             with open(SESSION_LOG_FILE, "r", encoding="utf-8") as f:
                 data = json.load(f)
@@ -87,7 +88,7 @@ class AgentService:
     def chat(self, message: str, history: Optional[List[Dict[str, str]]] = None) -> Dict[str, Any]:
         user_message = message.strip()
         if not user_message:
-            return {"reply": "Please ask a question about RxBridge.", "language": "English"}
+            return {"reply": "Please ask a question about Pharma Bridge.", "language": "English"}
 
         messages = [{"role": "system", "content": SYSTEM_PROMPT}]
         if history:
@@ -118,7 +119,7 @@ class AgentService:
                     
                     if not reply:
                         # Fallback if reasoning consumed tokens
-                        reply = "I am a normal assistant to help you guide through the RxBridge website. How can I help you today?"
+                        reply = "I am a normal assistant to help you guide through the Pharma Bridge website. How can I help you today?"
 
                     # Detect language approximately
                     lang = "English"
@@ -140,9 +141,9 @@ class AgentService:
 
         # If both keys failed, return polite apology based on language
         if any('\u0900' <= char <= '\u097F' for char in user_message):
-            polite_msg = "मला माफ करा, काही तांत्रिक अडचण आली आहे. कृपया थोड्या वेळाने प्रयत्न करा. मी RxBridge मध्ये आपली काय मदत करू शकतो?"
+            polite_msg = "मला माफ करा, काही तांत्रिक अडचण आली आहे. कृपया थोड्या वेळाने प्रयत्न करा. मी Pharma Bridge मध्ये आपली काय मदत करू शकतो?"
         else:
-            polite_msg = "I am very sorry, a technical issue occurred while connecting to the assistant. Please try again in a moment. How can I help you with RxBridge?"
+            polite_msg = "I am very sorry, a technical issue occurred while connecting to the assistant. Please try again in a moment. How can I help you with Pharma Bridge?"
         
         return {"reply": polite_msg, "language": "Fallback", "error": last_error}
 
