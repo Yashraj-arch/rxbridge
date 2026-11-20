@@ -42,7 +42,7 @@
   - `[MODIFIED]` `frontend/verify.html` -> Dual-sync mirror of `verify.html`.
   - `[MODIFIED]` `public/js/app.js` -> Rebranded application header and default clinic fallback.
   - `[MODIFIED]` `frontend/js/app.js` -> Dual-sync mirror of `app.js`.
-  - `[MODIFIED]` `vercel.json` -> Added route rewrite rule for `/distributor`.
+  - `[MODIFIED]` `vercel.json` -> Added route rewrite rules for clean URLs `/distributor` -> `/distributor.html` and `/verify` -> `/verify.html`.
 - **Verification & Testing Proof**:
   - TiDB Cloud Serverless MySQL migration: Verified `ALTER TABLE prescriptions ADD COLUMN ...` execution with exit code 0.
   - Role-Based Access Control (RBAC) tests: Verified doctor token receives HTTP 403 Forbidden on distributor endpoints, while pharmacy token receives HTTP 200 with complete datasets.
