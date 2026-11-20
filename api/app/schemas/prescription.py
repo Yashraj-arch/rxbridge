@@ -125,6 +125,9 @@ class PrescriptionResponse(BaseModel):
     doctor_email: Optional[str] = None
     created_by_email: Optional[str] = None
 
+    # Cloudinary PDF Archiving
+    pdf_url: Optional[str] = None
+
     # Medicines
     medicines: List[MedicineItemSchema] = []
 
@@ -146,6 +149,7 @@ class PrescriptionSummary(BaseModel):
     patient_age_gender: str
     diagnosis: Optional[str] = None
     status: str
+    pdf_url: Optional[str] = None
     consent_offers: bool
     created_at: Optional[datetime] = None
     completed_at: Optional[datetime] = None

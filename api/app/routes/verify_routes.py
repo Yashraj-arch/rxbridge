@@ -33,5 +33,6 @@ def verify_prescription(identifier: str, db: Session = Depends(get_db)):
         "regNo": doc_info.get("regNo") or "",
         "clinicName": doc_info.get("clinicName") or "Medical Clinic",
         "medicinesCount": len(rx.medicines),
+        "pdfUrl": rx.pdf_url,
         "status": rx.status,
     }

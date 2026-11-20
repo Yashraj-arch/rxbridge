@@ -1,0 +1,42 @@
+# RxBridge Project Change Log
+
+## [2026-11-20 17:50:00 IST] - Cloudinary PDF Archiving, High-DPI A4 Export & Customizable WhatsApp Engine
+- **Objective / User Request**: Seamlessly integrate Cloudinary cloud archiving for lab reports and prescription PDFs, implement high-DPI A4 PDF export, and build an editable WhatsApp sharing engine with Doctor profile injection and repeated patient message capability.
+- **Category**: Backend | Frontend | Database | Cloud Storage
+- **Summary of Changes**:
+  - Created a stateless Cloudinary streaming service (`cloudinary_service.py`) using unsigned preset `rxbridge_reports` on cloud `yrkeqdag`.
+  - Updated lab report uploads (`POST /api/v1/uploads/lab-report`) to stream directly to Cloudinary and record permanent HTTPS URLs in `lab_reports`.
+  - Added prescription PDF cloud archiving (`POST /api/v1/uploads/prescription-pdf/{rx_id}`), adding `pdf_url` and `pdf_public_id` columns to `prescriptions` in TiDB Cloud MySQL.
+  - Upgraded frontend canvas rendering to `scale: 3` (300 DPI equivalent) with automatic background archiving to Cloudinary.
+  - Built an interactive, customizable WhatsApp share modal (`#shareModal`) that pre-populates the Doctor's name, clinic name, clinic phone, patient name, Rx number, Cloudinary PDF link, and QR verification link into editable text.
+  - Added dedicated `@media print` CSS rules for clean, margin-free A4 clinical printing.
+  - Added direct PDF download button in public verification portal (`verify.html`).
+- **Files Affected**:
+  - `[CREATED]` `api/app/services/cloudinary_service.py` -> Direct streaming upload service to Cloudinary.
+  - `[CREATED]` `backend/app/services/cloudinary_service.py` -> Dual-sync mirror of Cloudinary service.
+  - `[MODIFIED]` `api/app/routes/upload_routes.py` -> Cloudinary lab report streaming + new `prescription-pdf` archiving route.
+  - `[MODIFIED]` `backend/app/routes/upload_routes.py` -> Dual-sync mirror of upload routes.
+  - `[MODIFIED]` `api/app/db/models/prescription.py` -> Added `pdf_url` and `pdf_public_id` columns.
+  - `[MODIFIED]` `backend/app/db/models/prescription.py` -> Dual-sync mirror of prescription model.
+  - `[MODIFIED]` `api/app/schemas/prescription.py` -> Added `pdf_url` to `PrescriptionResponse` and `PrescriptionSummary`.
+  - `[MODIFIED]` `backend/app/schemas/prescription.py` -> Dual-sync mirror of prescription schemas.
+  - `[MODIFIED]` `api/app/routes/verify_routes.py` -> Exposed `pdfUrl` in public verification payload.
+  - `[MODIFIED]` `backend/app/routes/verify_routes.py` -> Dual-sync mirror of verify routes.
+  - `[MODIFIED]` `api/app/core/config.py` -> Enhanced `.env` file resolution for local and serverless environments.
+  - `[MODIFIED]` `backend/app/core/config.py` -> Dual-sync mirror of config.
+  - `[MODIFIED]` `public/index.html` -> Added customizable WhatsApp Share Modal, print button, and WhatsApp template setting.
+  - `[MODIFIED]` `frontend/index.html` -> Dual-sync mirror of `index.html`.
+  - `[MODIFIED]` `public/js/app.js` -> Added high-DPI PDF generation, background archiving, print handler, and modal controllers.
+  - `[MODIFIED]` `frontend/js/app.js` -> Dual-sync mirror of `app.js`.
+  - `[MODIFIED]` `public/css/style.css` -> Fixed CSS syntax error and added `@media print` rules.
+  - `[MODIFIED]` `frontend/css/style.css` -> Dual-sync mirror of `style.css`.
+  - `[MODIFIED]` `public/verify.html` -> Added direct official PDF download link for patients/pharmacies.
+  - `[MODIFIED]` `frontend/verify.html` -> Dual-sync mirror of `verify.html`.
+- **Verification & Testing Proof**:
+  - Executed automated unit tests on `cloudinary_service.py`: Image and PDF uploads verified with HTTP 200 and valid `https://res.cloudinary.com/yrkeqdag/...` URLs.
+  - Executed end-to-end integration tests on FastAPI + TiDB Cloud MySQL:
+    - Lab report upload verified with HTTP 200, returned `https://res.cloudinary.com/yrkeqdag/image/upload/v1795177068/rxbridge_lab_reports/rvpz706sao4psoehguy9.jpg`.
+    - Prescription PDF archiving verified with HTTP 200, updated TiDB Cloud database with `https://res.cloudinary.com/yrkeqdag/image/upload/v1795177147/rxbridge_prescriptions/ihmu4e5uhiy3vzvaxt6t.pdf`.
+    - Verified retrieval through `GET /api/v1/prescriptions/{id}`.
+- **Deployment Status**: Local verified against live TiDB Cloud; staged for Vercel deployment.
+- **Rollback Safety**: All database schema changes are additive (`ALTER TABLE ... ADD COLUMN ... NULL`), backward-compatible with all existing records. Reverting git commit safely restores previous frontend and routes.

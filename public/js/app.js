@@ -991,6 +991,8 @@ function fillDoctorSettingsForm() {
   document.getElementById('settingClinicName').value = doctorSettings.clinicName || '';
   document.getElementById('settingClinicAddress').value = doctorSettings.clinicAddress || '';
   document.getElementById('settingClinicPhone').value = doctorSettings.clinicPhone || '';
+  const tmplInput = document.getElementById('settingWhatsappTemplate');
+  if (tmplInput) tmplInput.value = localStorage.getItem('rxbridge_whatsapp_template') || '';
   if (doctorSettings.signatureData) {
     const preview = document.getElementById('settingSignaturePreview');
     preview.src = doctorSettings.signatureData;
@@ -1033,6 +1035,8 @@ window.saveDoctorSettings = async function() {
   }
 
   try {
+    const customTmpl = document.getElementById('settingWhatsappTemplate')?.value || '';
+    localStorage.setItem('rxbridge_whatsapp_template', customTmpl);
     const updated = await apiUpdateSettings(payload);
     doctorSettings = {
       doctorName: updated.doctor_name,
@@ -1164,35 +1168,160 @@ window.viewRx = function(rx) {
   `;
 
   window.showScreen('viewScreen');
+
+  // Background Cloudinary PDF archiving if not already archived
+  if (rx && rx.id && (!rx.pdf_url || rx.pdf_url.startsWith('/uploads'))) {
+    setTimeout(() => {
+      generateAndArchivePdfBlob(rx).catch(e => console.warn('Background PDF archive notice:', e));
+    }, 500);
+  }
 };
 
-// PDF Download
-window.downloadRxPdf = async function() {
+// ═══════════════ CRISP A4 PDF GENERATION & ARCHIVING ═══════════════
+async function generateAndArchivePdfBlob(rx) {
   const sheet = document.getElementById('prescriptionSheet');
-  if (!sheet) return;
+  if (!sheet) return null;
 
   try {
-    const canvas = await html2canvas(sheet, { scale: 2, useCORS: true });
+    // scale: 3 gives 300 DPI high-definition crisp text & barcode/QR rendering
+    const canvas = await html2canvas(sheet, { scale: 3, useCORS: true, logging: false });
     const imgData = canvas.toDataURL('image/jpeg', 0.95);
     const { jsPDF } = window.jspdf;
     const pdf = new jsPDF('p', 'mm', 'a4');
     const width = pdf.internal.pageSize.getWidth();
     const height = (canvas.height * width) / canvas.width;
     pdf.addImage(imgData, 'JPEG', 0, 0, width, height);
-    pdf.save(`${currentViewRx?.rx_number || 'Prescription'}.pdf`);
+    const pdfBlob = pdf.output('blob');
+
+    // Archive to Cloudinary in background
+    if (rx && rx.id && (!rx.pdf_url || rx.pdf_url.startsWith('/uploads'))) {
+      const formData = new FormData();
+      formData.append('file', pdfBlob, `${rx.rx_number || 'Rx'}.pdf`);
+      apiFetch(`/uploads/prescription-pdf/${rx.id}`, {
+        method: 'POST',
+        body: formData,
+      }).then(res => {
+        if (res && res.pdf_url) {
+          rx.pdf_url = res.pdf_url;
+          console.log('Archived prescription PDF to Cloudinary:', res.pdf_url);
+        }
+      }).catch(err => {
+        console.warn('Cloudinary upload notice:', err);
+      });
+    }
+
+    return { pdf, pdfBlob };
+  } catch (err) {
+    console.error('PDF generation error:', err);
+    throw err;
+  }
+}
+
+// PDF Download
+window.downloadRxPdf = async function() {
+  if (!currentViewRx) return;
+  const btn = event?.currentTarget;
+  const originalHtml = btn ? btn.innerHTML : '';
+  if (btn) btn.innerHTML = '⏳ Generating...';
+
+  try {
+    const res = await generateAndArchivePdfBlob(currentViewRx);
+    if (res && res.pdf) {
+      res.pdf.save(`${currentViewRx?.rx_number || 'Prescription'}.pdf`);
+    }
   } catch (e) {
     alert('PDF generation error: ' + e.message);
+  } finally {
+    if (btn) btn.innerHTML = originalHtml;
   }
 };
 
-// WhatsApp Sharing
-window.shareRxOnWhatsapp = async function() {
+// Direct Browser Print
+window.printRxSheet = function() {
+  window.print();
+};
+
+// ═══════════════ CUSTOMIZABLE WHATSAPP SHARING ENGINE ═══════════════
+window.openShareModal = function() {
   if (!currentViewRx) return;
   const mobile = normMobile(currentViewRx.patient_mobile);
-  const rxNum = currentViewRx.rx_number || 'Rx';
-  const text = encodeURIComponent(`Hello ${currentViewRx.patient_name}, here is your digital prescription ${rxNum} from ${doctorSettings.clinicName || 'RxBridge'}. You can view or verify it online here: ${window.location.origin}/verify.html?id=${encodeURIComponent(rxNum)}`);
-  window.open(`https://wa.me/91${mobile}?text=${text}`, '_blank');
+  const mobileInput = document.getElementById('sharePatientMobile');
+  if (mobileInput) mobileInput.value = mobile ? `+91 ${mobile}` : 'Not provided';
+  window.updateShareTemplate();
+  const modal = document.getElementById('shareModal');
+  if (modal) modal.style.display = 'flex';
 };
+
+window.closeShareModal = function() {
+  const modal = document.getElementById('shareModal');
+  if (modal) modal.style.display = 'none';
+};
+
+window.updateShareTemplate = function() {
+  if (!currentViewRx) return;
+  const doc = currentViewRx.doctor_info || doctorSettings;
+  const clinicName = doc.clinicName || 'RxBridge Clinic';
+  const rawDocName = doc.doctorName || 'Doctor';
+  const doctorName = rawDocName.startsWith('Dr.') ? rawDocName : `Dr. ${rawDocName}`;
+  const patientName = currentViewRx.patient_name || 'Patient';
+  const rxNum = currentViewRx.rx_number || 'Rx';
+  const clinicPhone = doc.clinicPhone || '';
+  const verifyUrl = `${window.location.origin}/verify.html?id=${encodeURIComponent(rxNum)}`;
+  const pdfUrl = currentViewRx.pdf_url || '';
+
+  const includePdf = document.getElementById('shareIncludePdfLink')?.checked;
+  const includeVerify = document.getElementById('shareIncludeVerifyLink')?.checked;
+
+  const savedTemplate = localStorage.getItem('rxbridge_whatsapp_template');
+  let message = '';
+
+  if (savedTemplate && savedTemplate.trim()) {
+    message = savedTemplate
+      .replace(/\{patient_name\}/g, patientName)
+      .replace(/\{doctor_name\}/g, doctorName)
+      .replace(/\{clinic_name\}/g, clinicName)
+      .replace(/\{rx_number\}/g, rxNum)
+      .replace(/\{clinic_phone\}/g, clinicPhone)
+      .replace(/\{verify_url\}/g, includeVerify ? verifyUrl : '')
+      .replace(/\{pdf_url\}/g, includePdf ? (pdfUrl || verifyUrl) : '');
+  } else {
+    // Default smart clinic template
+    message = `Hello ${patientName},\n\nHere is your digital prescription (${rxNum}) from ${doctorName} at ${clinicName}.\n`;
+    
+    if (includePdf && pdfUrl) {
+      message += `\n📄 Download Prescription PDF:\n${pdfUrl}\n`;
+    }
+    if (includeVerify) {
+      message += `\n🔍 Verify Prescription Online:\n${verifyUrl}\n`;
+    }
+    if (currentViewRx.follow_up_date) {
+      message += `\n📅 Follow-up Date: ${currentViewRx.follow_up_date}\n`;
+    }
+    if (clinicPhone) {
+      message += `\nFor appointments or queries, contact: ${clinicPhone}\n`;
+    }
+    message += `\nWish you a speedy recovery!`;
+  }
+
+  const textarea = document.getElementById('shareMessageText');
+  if (textarea) textarea.value = message.trim();
+};
+
+window.executeShareWhatsapp = function() {
+  if (!currentViewRx) return;
+  const mobile = normMobile(currentViewRx.patient_mobile);
+  if (!mobile || mobile.length !== 10) {
+    alert('Please ensure a valid 10-digit mobile number is available for the patient.');
+    return;
+  }
+  const message = document.getElementById('shareMessageText')?.value || '';
+  const text = encodeURIComponent(message);
+  window.open(`https://wa.me/91${mobile}?text=${text}`, '_blank');
+  window.closeShareModal();
+};
+
+// Backwards compatibility alias
+window.shareRxOnWhatsapp = window.openShareModal;
 
 // Initialize on Page Load
 document.addEventListener('DOMContentLoaded', async () => {

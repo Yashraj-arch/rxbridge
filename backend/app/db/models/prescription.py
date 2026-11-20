@@ -54,6 +54,10 @@ class Prescription(Base):
     # Doctor letterhead snapshot at issue time (frozen, as required by BRD 6.4 FR-4.8)
     doctor_info = Column(JSON, nullable=True)
 
+    # Cloudinary PDF Archiving
+    pdf_url = Column(String(500), nullable=True)
+    pdf_public_id = Column(String(100), nullable=True)
+
     # Dispensing info
     dispensed_at = Column(DateTime, nullable=True)
     dispensed_by_id = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)

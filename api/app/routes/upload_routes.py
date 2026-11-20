@@ -6,9 +6,11 @@ from app.db.database import get_db
 from app.dependencies import get_current_user
 from app.db.models.user import User
 from app.db.models.lab_report import LabReport
+from app.db.models.prescription import Prescription
 from app.crud.crud_patient import normalize_mobile, get_or_create_patient
 from app.crud.crud_audit import log_audit
 from app.core.config import settings
+from app.services.cloudinary_service import upload_to_cloudinary
 
 router = APIRouter(prefix="/uploads", tags=["Uploads"])
 
@@ -66,15 +68,25 @@ async def upload_lab_report(
             detail="File content does not match its declared image/document type"
         )
 
-    os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
-    # Generate safe random UUID filename (prevents directory traversal attacks)
-    unique_name = f"{clean_mobile}_{uuid.uuid4().hex[:12]}{ext}"
-    file_path = os.path.join(settings.UPLOAD_DIR, unique_name)
-
-    with open(file_path, "wb") as f:
-        f.write(content)
-
-    file_url = f"/uploads/lab_reports/{unique_name}"
+    # Upload directly to Cloudinary
+    safe_filename = f"{clean_mobile}_{uuid.uuid4().hex[:8]}{ext}"
+    try:
+        cloud_res = upload_to_cloudinary(
+            file_bytes=content,
+            filename=safe_filename,
+            folder="rxbridge_lab_reports"
+        )
+        file_url = cloud_res["secure_url"]
+        public_id = cloud_res.get("public_id")
+    except Exception as e:
+        # Graceful fallback to local storage if network glitch occurs
+        os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
+        unique_name = f"{clean_mobile}_{uuid.uuid4().hex[:12]}{ext}"
+        file_path = os.path.join(settings.UPLOAD_DIR, unique_name)
+        with open(file_path, "wb") as f:
+            f.write(content)
+        file_url = f"/uploads/lab_reports/{unique_name}"
+        public_id = unique_name
 
     # Ensure patient exists or create stub
     get_or_create_patient(db=db, mobile=clean_mobile, name="Patient", age_gender="")
@@ -84,7 +96,7 @@ async def upload_lab_report(
         patient_mobile=clean_mobile,
         file_name=original_filename,
         file_url=file_url,
-        public_id=unique_name,
+        public_id=public_id,
         uploaded_by_id=current_user.id,
         uploaded_by_email=current_user.email
     )
@@ -95,7 +107,7 @@ async def upload_lab_report(
     log_audit(
         db,
         action="LAB_REPORT_UPLOADED",
-        details=f"Verified lab report {original_filename} uploaded for patient {clean_mobile}",
+        details=f"Verified lab report {original_filename} uploaded for patient {clean_mobile} to {file_url}",
         user_id=current_user.id,
         user_email=current_user.email
     )
@@ -105,5 +117,53 @@ async def upload_lab_report(
         "mobile": clean_mobile,
         "fileName": report.file_name,
         "url": report.file_url,
+        "public_id": report.public_id,
         "uploadedAt": report.uploaded_at.isoformat()
+    }
+
+@router.post("/prescription-pdf/{rx_id}")
+async def upload_prescription_pdf(
+    rx_id: int,
+    file: UploadFile = File(...),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Archives a finalized prescription PDF to Cloudinary and updates prescription.pdf_url
+    """
+    rx = db.query(Prescription).filter(Prescription.id == rx_id).first()
+    if not rx:
+        raise HTTPException(status_code=404, detail=f"Prescription with ID {rx_id} not found")
+
+    content = await file.read()
+    if len(content) < 10:
+        raise HTTPException(status_code=400, detail="Prescription PDF is empty")
+    if len(content) > 15 * 1024 * 1024:
+        raise HTTPException(status_code=413, detail="Prescription PDF exceeds 15 MB limit")
+
+    filename = f"{rx.rx_number or f'Rx_{rx.id}'}.pdf"
+    cloud_res = upload_to_cloudinary(
+        file_bytes=content,
+        filename=filename,
+        folder="rxbridge_prescriptions"
+    )
+
+    rx.pdf_url = cloud_res["secure_url"]
+    rx.pdf_public_id = cloud_res.get("public_id")
+    db.commit()
+    db.refresh(rx)
+
+    log_audit(
+        db,
+        action="PRESCRIPTION_PDF_ARCHIVED",
+        details=f"Archived PDF for {rx.rx_number} to Cloudinary: {rx.pdf_url}",
+        user_id=current_user.id,
+        user_email=current_user.email
+    )
+
+    return {
+        "id": rx.id,
+        "rx_number": rx.rx_number,
+        "pdf_url": rx.pdf_url,
+        "public_id": rx.pdf_public_id
     }

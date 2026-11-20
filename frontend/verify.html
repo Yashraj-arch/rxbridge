@@ -77,6 +77,15 @@
         ['Medicines Count', String(d.medicinesCount ?? '—')],
         ['Status', (d.status || 'completed').toUpperCase()]
       ], 'Verified official record from RxBridge. Ensure the printed copy matches the details displayed above.');
+      if (d.pdfUrl) {
+        const pdfBtn = document.createElement('a');
+        pdfBtn.href = d.pdfUrl;
+        pdfBtn.target = '_blank';
+        pdfBtn.rel = 'noopener noreferrer';
+        pdfBtn.style = 'display:block;margin-top:16px;padding:12px;text-align:center;background:#0d9488;color:#fff;border-radius:10px;text-decoration:none;font-weight:600;font-size:14px;';
+        pdfBtn.textContent = '📄 Download Official PDF';
+        card.appendChild(pdfBtn);
+      }
     } catch (e) {
       console.error(e);
       show(false, '⚠️ Connection Error', [], 'Unable to connect to the RxBridge verification server. Please verify the backend is running.');

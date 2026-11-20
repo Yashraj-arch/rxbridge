@@ -46,7 +46,9 @@ class Settings(BaseSettings):
 
     class Config:
         env_file = (
+            os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "backend", ".env"),
             os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), ".env"),
+            "backend/.env",
             ".env"
         )
         extra = "ignore"
